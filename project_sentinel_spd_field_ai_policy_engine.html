@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Sentinel</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.js"></script>
+<style>
+  :root{
+    --paper:#f6f3ec; --surface:#ffffff; --surface-raised:#fffdf8;
+    --ink:#1b2430; --ink-soft:#5b6472; --ink-faint:#8b93a0;
+    --line:#ddd6c4; --line-strong:#c7bfa9;
+    --accent:#1e4d6b; --accent-strong:#123347; --accent-soft:#e4edf1; --accent-ink:#ffffff;
+    --gold:#8f6d24; --gold-soft:#f3ecd8;
+    --ok:#1f7a4d; --ok-soft:#e3f1e7; --ok-line:#b9dcc4;
+    --warn:#a15c0a; --warn-soft:#faf0dd; --warn-line:#e8cd97;
+    --bad:#ad2b3a; --bad-soft:#f8e6e8; --bad-line:#e6b8bd;
+    --shadow: 27 36 48;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#11161f; --surface:#171e29; --surface-raised:#1c2430;
+      --ink:#e9e6dd; --ink-soft:#a3aab5; --ink-faint:#6f7885;
+      --line:#2a3240; --line-strong:#3a4353;
+      --accent:#7bb8d8; --accent-strong:#9ccfe8; --accent-soft:#1c2f38; --accent-ink:#0d1620;
+      --gold:#d3ac5c; --gold-soft:#2e2717;
+      --ok:#59c790; --ok-soft:#14261c; --ok-line:#2b4638;
+      --warn:#dd9a4a; --warn-soft:#2c2213; --warn-line:#4a3a1e;
+      --bad:#e5828f; --bad-soft:#2c191c; --bad-line:#4a2830;
+      --shadow: 0 0 0;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#11161f; --surface:#171e29; --surface-raised:#1c2430;
+    --ink:#e9e6dd; --ink-soft:#a3aab5; --ink-faint:#6f7885;
+    --line:#2a3240; --line-strong:#3a4353;
+    --accent:#7bb8d8; --accent-strong:#9ccfe8; --accent-soft:#1c2f38; --accent-ink:#0d1620;
+    --gold:#d3ac5c; --gold-soft:#2e2717;
+    --ok:#59c790; --ok-soft:#14261c; --ok-line:#2b4638;
+    --warn:#dd9a4a; --warn-soft:#2c2213; --warn-line:#4a3a1e;
+    --bad:#e5828f; --bad-soft:#2c191c; --bad-line:#4a2830;
+    --shadow: 0 0 0;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ background:var(--paper); }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    min-height:100vh; display:flex; flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:"Source Serif 4", Georgia, serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  .tnum{ font-variant-numeric:tabular-nums; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+  button{ font-family:inherit; cursor:pointer; }
+  @media (prefers-reduced-motion:reduce){ *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; } }
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:0.7rem 1.25rem;
+  }
+  .header-inner{ max-width:52rem; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+  .brand{ display:flex; align-items:center; gap:0.7rem; }
+  .brand-mark{
+    height:2.35rem; width:2.35rem; border-radius:0.6rem; flex-shrink:0;
+    background:var(--accent); color:var(--accent-ink);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 10px -4px rgba(var(--shadow)/0.5);
+  }
+  .brand-text{ display:flex; align-items:baseline; gap:0.5rem; flex-wrap:wrap; }
+  .brand-name{ font-family:"Source Serif 4",serif; font-weight:700; font-size:1rem; letter-spacing:0.01em; }
+  .brand-tag{ font-size:0.62rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:0.15rem 0.45rem; border-radius:0.3rem; background:var(--gold-soft); color:var(--gold); border:1px solid var(--gold); }
+  .brand-sub{ font-size:0.72rem; color:var(--ink-faint); margin-top:0.05rem; }
+  .header-right{ display:flex; align-items:center; gap:0.9rem; }
+  .dots{ display:flex; align-items:center; gap:0.25rem; }
+  @media (max-width:640px){ .dots, .divider-v{ display:none; } }
+  .dot{ height:0.4rem; border-radius:99px; background:var(--line-strong); width:0.4rem; transition:width .3s ease, background .3s ease; }
+  .dot.done{ background:var(--ok); width:0.4rem; }
+  .dot.current{ background:var(--accent); width:1.3rem; }
+  .divider-v{ width:1px; height:1.1rem; background:var(--line); }
+  .btn-codex{
+    display:flex; align-items:center; gap:0.4rem; font-size:0.72rem; font-weight:600;
+    padding:0.4rem 0.75rem; border-radius:0.5rem; background:var(--surface-raised);
+    border:1px solid var(--line-strong); color:var(--ink);
+  }
+  .btn-codex:hover{ border-color:var(--accent); color:var(--accent-strong); }
+
+  /* ---------- main ---------- */
+  main{ flex:1; width:100%; max-width:42rem; margin:0 auto; padding:1.75rem 1.25rem 3rem; display:flex; flex-direction:column; }
+  .quiz{ display:flex; flex-direction:column; gap:1.15rem; }
+  .meta-row{ display:flex; align-items:center; justify-content:space-between; gap:1rem; font-size:0.72rem; color:var(--ink-faint); border-bottom:1px solid var(--line); padding-bottom:0.65rem; flex-wrap:wrap; }
+  .meta-left{ display:flex; align-items:center; gap:0.5rem; }
+  .meta-left .cat{ color:var(--ink); font-weight:500; }
+  .counter{ color:var(--accent-strong); font-weight:600; letter-spacing:0.03em; }
+  .score-pill{ display:flex; align-items:center; gap:0.4rem; font-weight:600; color:var(--ink); }
+  .score-pill svg{ color:var(--gold); }
+  #score-display{ color:var(--gold); }
+
+  .question-head{ display:flex; flex-direction:column; gap:0.3rem; }
+  .question-head h1{ font-size:1.2rem; font-weight:600; display:flex; align-items:center; gap:0.5rem; }
+  .question-head h1 svg{ color:var(--accent); flex-shrink:0; }
+  .question-head p{ margin:0; font-size:0.85rem; color:var(--ink-soft); line-height:1.5; }
+
+  .case-card{
+    position:relative; background:var(--surface); border:1px solid var(--line-strong);
+    border-radius:1rem; padding:1.5rem; box-shadow:0 12px 30px -18px rgba(var(--shadow)/0.55);
+    animation:enter .35s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes enter{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+  .case-card::before{
+    content:""; position:absolute; left:0; top:1.1rem; bottom:1.1rem; width:3px;
+    background:var(--accent); border-radius:0 3px 3px 0;
+  }
+  .case-top{ display:flex; align-items:center; justify-content:space-between; gap:0.6rem 1rem; margin-bottom:0.9rem; flex-wrap:wrap; }
+  .case-badge{ font-size:0.65rem; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; padding:0.25rem 0.6rem; border-radius:0.35rem; background:var(--accent-soft); color:var(--accent-strong); border:1px solid var(--line-strong); }
+  .case-id{ font-size:0.72rem; color:var(--ink-faint); }
+  .case-text{ font-family:"Source Serif 4",serif; font-size:1.15rem; line-height:1.55; font-style:italic; color:var(--ink); }
+  .case-text::before{ content:open-quote; color:var(--gold); }
+  .case-text::after{ content:close-quote; color:var(--gold); }
+
+  .triage{ display:grid; grid-template-columns:1fr; gap:0.6rem; }
+  @media (min-width:640px){ .triage{ grid-template-columns:repeat(3,1fr); } }
+  .triage-btn{
+    display:flex; align-items:center; justify-content:center; gap:0.55rem;
+    padding:0.85rem; border-radius:0.75rem; font-weight:600; font-size:0.85rem;
+    border:1px solid; transition:transform .12s ease, background .15s ease;
+  }
+  .triage-btn:active{ transform:scale(0.98); }
+  .triage-btn.ok{ background:var(--ok-soft); border-color:var(--ok-line); color:var(--ok); }
+  .triage-btn.ok:hover{ border-color:var(--ok); }
+  .triage-btn.warn{ background:var(--warn-soft); border-color:var(--warn-line); color:var(--warn); }
+  .triage-btn.warn:hover{ border-color:var(--warn); }
+  .triage-btn.bad{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
+  .triage-btn.bad:hover{ border-color:var(--bad); }
+  .triage-btn:disabled{ opacity:0.55; cursor:default; transform:none; }
+
+  .kbd-hint{ text-align:center; font-size:0.72rem; color:var(--ink-faint); }
+  kbd{ font-family:"IBM Plex Mono",monospace; background:var(--surface-raised); border:1px solid var(--line-strong); border-radius:0.3rem; padding:0.1rem 0.35rem; color:var(--ink); }
+
+  /* ---------- feedback sheet ---------- */
+  #feedback-panel{ position:fixed; inset-inline:0; bottom:0; z-index:50; display:flex; justify-content:center; padding:1rem; transform:translateY(110%); transition:transform .3s cubic-bezier(.16,1,.3,1); }
+  #feedback-box{ width:100%; max-width:42rem; background:var(--surface); border:1px solid var(--line-strong); border-top:3px solid var(--ink-faint); border-radius:1rem; padding:1.35rem; box-shadow:0 -10px 34px -14px rgba(var(--shadow)/0.5); display:flex; flex-direction:column; gap:1rem; }
+  #feedback-box.ok{ border-top-color:var(--ok); }
+  #feedback-box.bad{ border-top-color:var(--bad); }
+  .fb-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:0.75rem; }
+  .fb-head-left{ display:flex; align-items:center; gap:0.7rem; }
+  #feedback-icon{ padding:0.5rem; border-radius:0.6rem; display:flex; }
+  #feedback-icon.ok{ background:var(--ok-soft); color:var(--ok); }
+  #feedback-icon.bad{ background:var(--bad-soft); color:var(--bad); }
+  #feedback-title{ font-size:1rem; font-weight:700; }
+  #feedback-title.ok{ color:var(--ok); }
+  #feedback-title.bad{ color:var(--bad); }
+  #feedback-verdict-summary{ margin:0.1rem 0 0; font-size:0.75rem; color:var(--ink-faint); }
+  #feedback-badge{ font-family:"IBM Plex Mono",monospace; font-size:0.68rem; font-weight:600; padding:0.25rem 0.6rem; border-radius:0.35rem; height:fit-content; }
+  #feedback-badge.ok{ background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok-line); }
+  #feedback-badge.bad{ background:var(--bad-soft); color:var(--bad); border:1px solid var(--bad-line); }
+
+  .citation-box{ background:var(--gold-soft); border:1px solid var(--line-strong); border-left:3px solid var(--gold); border-radius:0.6rem; padding:0.9rem 1rem; display:flex; flex-direction:column; gap:0.5rem; }
+  .citation-label{ display:flex; align-items:center; justify-content:space-between; font-size:0.68rem; color:var(--ink-faint); border-bottom:1px solid var(--line); padding-bottom:0.4rem; }
+  .citation-label span:first-child{ font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--gold); display:flex; align-items:center; gap:0.35rem; }
+  #jurisdiction-tag{ font-family:"IBM Plex Mono",monospace; padding:0.1rem 0.4rem; background:var(--surface); border:1px solid var(--line); border-radius:0.3rem; }
+  #feedback-citations{ font-family:"IBM Plex Mono",monospace; font-size:0.82rem; line-height:1.5; color:var(--ink); }
+  #feedback-takeaway{ font-size:0.8rem; color:var(--ink-soft); line-height:1.55; padding-top:0.45rem; border-top:1px solid var(--line); }
+  #feedback-sources{ display:flex; flex-wrap:wrap; gap:0.4rem; padding-top:0.15rem; }
+  .source-pill{ display:inline-flex; align-items:center; gap:0.3rem; font-size:0.68rem; font-weight:600; color:var(--accent-strong); background:var(--surface); border:1px solid var(--line-strong); border-radius:99px; padding:0.25rem 0.65rem 0.25rem 0.55rem; text-decoration:none; }
+  .source-pill:hover{ border-color:var(--accent); background:var(--accent-soft); }
+  .source-pill svg{ flex-shrink:0; }
+
+  .btn-primary{ width:100%; padding:0.8rem; background:var(--accent); color:var(--accent-ink); font-weight:600; font-size:0.85rem; border:none; border-radius:0.7rem; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+  .btn-primary:hover{ background:var(--accent-strong); }
+
+  /* ---------- summary ---------- */
+  #summary-view{ display:none; flex-direction:column; align-items:center; text-align:center; gap:1.4rem; background:var(--surface); border:1px solid var(--line-strong); border-radius:1.25rem; padding:2rem 1.75rem; box-shadow:0 12px 30px -18px rgba(var(--shadow)/0.55); animation:enter .35s cubic-bezier(.16,1,.3,1); }
+  #summary-view.show{ display:flex; }
+  .medal{ position:relative; height:4.4rem; width:4.4rem; border-radius:1.1rem; background:linear-gradient(155deg,var(--accent),var(--gold)); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; }
+  .medal .check{ position:absolute; bottom:-0.4rem; right:-0.4rem; background:var(--ok); color:var(--surface); border-radius:99px; padding:0.25rem; border:2px solid var(--surface); display:flex; }
+  .summary-eyebrow{ font-family:"IBM Plex Mono",monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent-strong); font-weight:600; }
+  #summary-view h2{ font-size:1.5rem; margin:0.3rem 0; }
+  #summary-view > .summary-copy p{ margin:0; font-size:0.82rem; color:var(--ink-soft); max-width:30rem; line-height:1.55; }
+
+  .stat-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:0.65rem; width:100%; }
+  .stat-tile{ padding:0.85rem 0.5rem; background:var(--paper); border:1px solid var(--line); border-radius:0.7rem; text-align:center; }
+  .stat-tile .num{ font-size:1.4rem; font-weight:700; color:var(--accent-strong); }
+  .stat-tile .num.gold{ color:var(--gold); }
+  .stat-tile .num.ok{ color:var(--ok); }
+  .stat-tile .label{ font-size:0.62rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint); margin-top:0.15rem; }
+
+  .comp-box{ width:100%; background:var(--paper); border:1px solid var(--line); border-radius:0.9rem; padding:1rem; text-align:left; display:flex; flex-direction:column; gap:0.65rem; }
+  .comp-head{ display:flex; align-items:center; justify-content:space-between; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); }
+  .comp-head .cjis{ color:var(--ok); font-family:"IBM Plex Mono",monospace; font-weight:600; display:flex; align-items:center; gap:0.3rem; text-transform:none; letter-spacing:0; }
+  .comp-item{ display:flex; align-items:center; justify-content:space-between; padding:0.55rem 0.7rem; border-radius:0.5rem; background:var(--surface); border:1px solid var(--line); font-size:0.78rem; }
+  .comp-item .status{ color:var(--ok); font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:0.72rem; }
+
+  .summary-actions{ display:flex; flex-direction:column; gap:0.6rem; width:100%; }
+  @media (min-width:640px){ .summary-actions{ flex-direction:row; } }
+  .btn-secondary{ padding:0.8rem 1.2rem; background:var(--surface); color:var(--ink); font-weight:600; font-size:0.85rem; border:1px solid var(--line-strong); border-radius:0.7rem; display:flex; align-items:center; justify-content:center; gap:0.5rem; white-space:nowrap; }
+  .btn-secondary:hover{ border-color:var(--accent); }
+  #copy-toast{ font-size:0.72rem; color:var(--ok); display:flex; align-items:center; gap:0.35rem; opacity:0; transition:opacity .2s ease; font-family:"IBM Plex Mono",monospace; }
+  #copy-toast.show{ opacity:1; }
+
+  /* ---------- codex drawer ---------- */
+  #tutor-drawer{ position:fixed; inset:0; z-index:60; pointer-events:none; opacity:0; transition:opacity .3s ease; }
+  #tutor-drawer.open{ pointer-events:auto; opacity:1; }
+  #drawer-backdrop{ position:absolute; inset:0; background:rgba(15,18,24,0.45); backdrop-filter:blur(2px); }
+  #drawer-content{ position:absolute; right:0; top:0; bottom:0; width:100%; max-width:26rem; background:var(--surface); border-left:1px solid var(--line-strong); box-shadow:-16px 0 40px -20px rgba(var(--shadow)/0.6); display:flex; flex-direction:column; transform:translateX(105%); transition:transform .3s cubic-bezier(.16,1,.3,1); }
+  #tutor-drawer.open #drawer-content{ transform:translateX(0); }
+  .drawer-head{ padding:1.15rem 1.25rem; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; background:var(--paper); }
+  .drawer-head-left{ display:flex; align-items:center; gap:0.65rem; }
+  .drawer-head-icon{ height:2.1rem; width:2.1rem; border-radius:0.55rem; background:var(--accent-soft); color:var(--accent-strong); display:flex; align-items:center; justify-content:center; }
+  .drawer-head h3{ font-size:0.9rem; font-weight:700; }
+  .drawer-head p{ margin:0.1rem 0 0; font-size:0.7rem; color:var(--ink-faint); }
+  .drawer-close{ padding:0.4rem; border-radius:0.5rem; color:var(--ink-faint); border:none; background:none; }
+  .drawer-close:hover{ background:var(--surface-raised); color:var(--ink); }
+  .drawer-body{ flex:1; overflow-y:auto; padding:1.25rem; display:flex; flex-direction:column; gap:1rem; }
+  .drawer-intro{ font-size:0.78rem; color:var(--ink-soft); line-height:1.55; margin:0; }
+  .tier{ border:1px solid var(--line); background:var(--paper); border-radius:0.75rem; padding:0.85rem; display:flex; flex-direction:column; gap:0.35rem; }
+  .tier-top{ display:flex; align-items:center; justify-content:space-between; gap:0.5rem; }
+  .tier-num{ display:flex; align-items:center; gap:0.4rem; font-family:"IBM Plex Mono",monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:700; padding:0.2rem 0.5rem; border-radius:0.35rem; }
+  .tier-cite{ font-family:"IBM Plex Mono",monospace; font-size:0.66rem; color:var(--ink-faint); }
+  .tier h4{ font-family:"IBM Plex Sans",sans-serif; font-size:0.8rem; font-weight:600; margin:0; }
+  .tier p{ margin:0; font-size:0.72rem; color:var(--ink-soft); line-height:1.5; }
+  .tier.federal .tier-num{ background:#efe6f7; color:#6b3fa0; }
+  .tier.state .tier-num{ background:var(--accent-soft); color:var(--accent-strong); }
+  .tier.city .tier-num{ background:var(--ok-soft); color:var(--ok); }
+  .tier.dept .tier-num{ background:var(--gold-soft); color:var(--gold); }
+  .drawer-note{ display:flex; gap:0.55rem; padding:0.85rem; border-radius:0.7rem; background:var(--accent-soft); color:var(--accent-strong); font-size:0.75rem; line-height:1.5; border:1px solid var(--line); }
+  .drawer-note svg{ flex-shrink:0; margin-top:0.1rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark"><i data-lucide="shield-check" style="width:1.2rem;height:1.2rem;"></i></div>
+      <div>
+        <div class="brand-text">
+          <span class="brand-name">Project Sentinel</span>
+          <span class="brand-tag">SPD v1.2</span>
+        </div>
+        <p class="brand-sub">Seattle Police Dept &middot; Jurisdictional AI Compliance</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="dots" id="progress-dots" aria-label="Progress tracker"></div>
+      <div class="divider-v"></div>
+      <button id="open-tutor-btn" class="btn-codex">
+        <i data-lucide="sparkles" style="width:0.85rem;height:0.85rem;color:var(--gold);"></i>
+        <span>Policy Codex</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="quiz-container" class="quiz">
+    <div class="meta-row">
+      <div class="meta-left">
+        <span class="counter mono" id="scenario-counter">SCENARIO 1 OF 5</span>
+        <span>&middot;</span>
+        <span class="cat" id="scenario-category">Criminal Evidence &amp; CJIS</span>
+      </div>
+      <div class="score-pill">
+        <i data-lucide="award" style="width:0.9rem;height:0.9rem;"></i>
+        <span>Score: <span id="score-display" class="tnum">0</span></span>
+      </div>
+    </div>
+
+    <div class="question-head">
+      <h1><i data-lucide="scale" style="width:1.15rem;height:1.15rem;"></i>Evaluate Field Decision &amp; Tool Legality</h1>
+      <p>Review the officer's action and determine whether it complies with governing Federal, Washington State, and Seattle Municipal guidelines.</p>
+    </div>
+
+    <div id="active-card" class="case-card">
+      <div class="case-top">
+        <span class="case-badge" id="card-badge">INCIDENT DISPATCH</span>
+        <span class="case-id mono" id="card-id">#SPD-2026-081</span>
+      </div>
+      <p id="scenario-text" class="case-text">Loading scenario content&hellip;</p>
+    </div>
+
+    <div class="triage">
+      <button onclick="handleSelection('authorized')" class="triage-btn ok">
+        <i data-lucide="check-circle-2" style="width:1.1rem;height:1.1rem;"></i><span>Authorized</span>
+      </button>
+      <button onclick="handleSelection('escalate')" class="triage-btn warn">
+        <i data-lucide="alert-triangle" style="width:1.1rem;height:1.1rem;"></i><span>Needs Escalation</span>
+      </button>
+      <button onclick="handleSelection('violation')" class="triage-btn bad">
+        <i data-lucide="x-circle" style="width:1.1rem;height:1.1rem;"></i><span>Policy Violation</span>
+      </button>
+    </div>
+
+    <p class="kbd-hint">Keyboard shortcuts: <kbd>1</kbd> Auth &middot; <kbd>2</kbd> Escalate &middot; <kbd>3</kbd> Violation</p>
+  </div>
+
+  <div id="feedback-panel">
+    <div id="feedback-box">
+      <div class="fb-head">
+        <div class="fb-head-left">
+          <div id="feedback-icon"></div>
+          <div>
+            <h3 id="feedback-title">Outcome</h3>
+            <p id="feedback-verdict-summary"></p>
+          </div>
+        </div>
+        <span id="feedback-badge"></span>
+      </div>
+
+      <div class="citation-box">
+        <div class="citation-label">
+          <span><i data-lucide="book-marked" style="width:0.8rem;height:0.8rem;"></i>Statutory Grounding &amp; Authorities</span>
+          <span id="jurisdiction-tag" class="mono"></span>
+        </div>
+        <p id="feedback-citations"></p>
+        <p id="feedback-takeaway"></p>
+        <div id="feedback-sources"></div>
+      </div>
+
+      <button id="next-btn" onclick="nextCard()" class="btn-primary">
+        <span>Continue to Next Card</span>
+        <i data-lucide="arrow-right" style="width:0.95rem;height:0.95rem;"></i>
+      </button>
+    </div>
+  </div>
+
+  <div id="summary-view">
+    <div class="medal">
+      <i data-lucide="medal" style="width:1.9rem;height:1.9rem;"></i>
+      <span class="check"><i data-lucide="check" style="width:0.8rem;height:0.8rem;stroke-width:3;"></i></span>
+    </div>
+
+    <div>
+      <div class="summary-eyebrow">Microcredential Module Completed</div>
+      <h2>Public Safety AI Compliance Mastery</h2>
+    </div>
+    <div class="summary-copy">
+      <p>You demonstrated foundational legal reasoning applying the SPD Manual, Washington RCW, and CJIS requirements to generative AI in the field.</p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-tile"><div class="num tnum" id="final-score">5/5</div><div class="label">Accuracy</div></div>
+      <div class="stat-tile"><div class="num ok tnum" id="final-pct">100%</div><div class="label">Proficiency</div></div>
+      <div class="stat-tile"><div class="num gold">0.5 CEU</div><div class="label">CityU Micro Credit</div></div>
+    </div>
+
+    <div class="comp-box">
+      <div class="comp-head">
+        <span>Competencies Evaluated</span>
+        <span class="cjis"><i data-lucide="shield" style="width:0.75rem;height:0.75rem;"></i>CJIS Level 4 Ready</span>
+      </div>
+      <div class="comp-item"><span>CJIS Confidentiality &amp; Narrative Bar (KCPAO)</span><span class="status">Verified</span></div>
+      <div class="comp-item"><span>Immigration Neutrality Safeguards (SMC 4.18)</span><span class="status">Verified</span></div>
+      <div class="comp-item"><span>Tactical Proportionality &amp; Escalation (RCW 10.116)</span><span class="status">Verified</span></div>
+    </div>
+
+    <div class="summary-actions">
+      <button onclick="copyCredentialBadge()" id="share-badge-btn" class="btn-primary">
+        <i data-lucide="share-2" style="width:0.9rem;height:0.9rem;"></i><span>Copy CityU Microcredential Link</span>
+      </button>
+      <button onclick="resetModule()" class="btn-secondary">
+        <i data-lucide="rotate-ccw" style="width:0.9rem;height:0.9rem;"></i><span>Restart</span>
+      </button>
+    </div>
+
+    <div id="copy-toast">
+      <i data-lucide="check" style="width:0.8rem;height:0.8rem;"></i>
+      <span>Credential verification link copied to clipboard</span>
+    </div>
+  </div>
+</main>
+
+<div id="tutor-drawer">
+  <div id="drawer-backdrop"></div>
+  <div id="drawer-content">
+    <div class="drawer-head">
+      <div class="drawer-head-left">
+        <div class="drawer-head-icon"><i data-lucide="library" style="width:1rem;height:1rem;"></i></div>
+        <div>
+          <h3>Seattle Public Safety Policy Codex</h3>
+          <p>Statutory Grounding Hierarchy</p>
+        </div>
+      </div>
+      <button id="close-tutor-btn" class="drawer-close"><i data-lucide="x" style="width:1.15rem;height:1.15rem;"></i></button>
+    </div>
+    <div class="drawer-body">
+      <p class="drawer-intro">First-responder AI decisions in Seattle must be grounded in an auditable four-tier hierarchy. Generative models cannot override mandatory human attestation or state statutory guardrails.</p>
+
+      <div class="tier federal">
+        <div class="tier-top"><span class="tier-num">Tier 1 &middot; Federal</span><span class="tier-cite">FBI CJIS v5.9</span></div>
+        <h4>Criminal Justice Information Services (CJIS)</h4>
+        <p>Mandates end-to-end data encryption, strict boundary control, and bans the transmission of unredacted investigatory case files to public cloud consumer LLMs.</p>
+        <a class="source-pill" href="https://www.fbi.gov/services/cjis" target="_blank" rel="noopener">View official text <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+      </div>
+
+      <div class="tier state">
+        <div class="tier-top"><span class="tier-num">Tier 2 &middot; Washington State</span><span class="tier-cite">RCW 10.116 &amp; KCPAO</span></div>
+        <h4>State Tactics &amp; King County Prosecutor Rule</h4>
+        <p>RCW 10.116 restricts tactical force authorization. King County Prosecuting Attorney's Office (KCPAO) disallows AI-authored narrative statements in criminal filings to preserve Brady/Giglio integrity.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+          <a class="source-pill" href="https://app.leg.wa.gov/rcw/default.aspx?cite=10.116" target="_blank" rel="noopener">RCW 10.116 <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+          <a class="source-pill" href="https://kingcounty.gov/en/dept/pao" target="_blank" rel="noopener">KCPAO <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+        </div>
+      </div>
+
+      <div class="tier city">
+        <div class="tier-top"><span class="tier-num">Tier 3 &middot; Municipal</span><span class="tier-cite">SMC 4.18 &amp; Pol-209</span></div>
+        <h4>Seattle City Generative AI &amp; Welcoming City</h4>
+        <p>SMC 4.18 forbids using city resources for civil immigration enforcement inquiries. The City's Generative AI policy mandates full disclosure and human-in-the-loop validation of generative assistance.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+          <a class="source-pill" href="https://library.municode.com/wa/seattle/codes/municipal_code/333954?nodeId=TIT4PE_CH4.18ENFEIMLA_4.18.020MARECO" target="_blank" rel="noopener">SMC 4.18 <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+          <a class="source-pill" href="https://itservicehub.seattle.gov/tech/data-privacy/the-citys-responsible-use-of-artificial-intelligence" target="_blank" rel="noopener">GenAI Policy <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+        </div>
+      </div>
+
+      <div class="tier dept">
+        <div class="tier-top"><span class="tier-num">Tier 4 &middot; Departmental</span><span class="tier-cite">SPD Manual &sect;5.002, &sect;6.020</span></div>
+        <h4>Seattle Police Manual Operational Standards</h4>
+        <p>Sets granular protocols for primary investigation report attribution, supervisor de-escalation authorizations, and use of in-car computational recording assets.</p>
+        <a class="source-pill" href="https://public.powerdms.com/Sea4550" target="_blank" rel="noopener">SPD Manual <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+      </div>
+
+      <div class="drawer-note">
+        <i data-lucide="info" style="width:1rem;height:1rem;"></i>
+        <span><strong>Microcredential note:</strong> when designing automated responder tools, engineers must encode these statutory gates prior to prompt dispatch.</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        <div class="comp-head" style="color:var(--ink-soft);"><span>Additional Statutes Referenced</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+          <a class="source-pill" href="https://app.leg.wa.gov/RCW/default.aspx?cite=43.386" target="_blank" rel="noopener">RCW 43.386 &middot; Facial Recognition <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+          <a class="source-pill" href="https://www.seattle.gov/tech/data-privacy/surveillance-technology" target="_blank" rel="noopener">SMC 14.18 &middot; Surveillance Ordinance <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+          <a class="source-pill" href="https://app.leg.wa.gov/rcw/default.aspx?cite=9.73.030" target="_blank" rel="noopener">RCW 9.73.030 &middot; Privacy Act <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+          <a class="source-pill" href="https://app.leg.wa.gov/rcw/default.aspx?cite=13.50.010" target="_blank" rel="noopener">RCW 13.50 &middot; Juvenile Records <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+          <a class="source-pill" href="https://app.leg.wa.gov/rcw/default.aspx?cite=42.56" target="_blank" rel="noopener">RCW 42.56 &middot; Public Records Act <i data-lucide="arrow-up-right" style="width:0.65rem;height:0.65rem;"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const scenarios = [
+    {
+      id: "SPD-2026-081",
+      category: "Criminal Evidence & CJIS",
+      text: "An officer pastes a witness interview transcript containing personal identifiable information (PII) into an unvetted public cloud LLM to draft the official narrative statement for a felony assault filing.",
+      verdict: "violation",
+      title: "Unauthorized Cloud Disclosure & Uncertified Narrative",
+      jurisdiction: "Federal + King County",
+      citations: "FBI CJIS Security Policy v5.9 §5.4 & King County Prosecuting Attorney's Office (KCPAO) GenAI Directives",
+      explanation: "Violates federal CJIS protections by transmitting non-public investigative evidence outside government boundaries. King County prosecutors strictly ban AI-generated officer narratives in charging documents to preserve Brady disclosure and witness testimonial integrity.",
+      sources: [
+        { label: "FBI CJIS Security Policy", url: "https://www.fbi.gov/services/cjis" },
+        { label: "KCPAO", url: "https://kingcounty.gov/en/dept/pao" }
+      ]
+    },
+    {
+      id: "SPD-2026-104",
+      category: "CAD Logging & Speech AI",
+      text: "During a non-violent commercial trespass call, an officer activates an enterprise-vetted, locally processed speech-to-text tool installed on the Mobile Data Terminal (MDT) to log unit dispatch timestamps and CAD notes.",
+      verdict: "authorized",
+      title: "Authorized Transcription & Institutional Compliance",
+      jurisdiction: "City of Seattle / SPD",
+      citations: "City of Seattle Generative AI Policy (Pol-209) & SPD Manual §12.040 (Department Systems)",
+      explanation: "The tool runs on approved, locally isolated infrastructure adhering to City IT boundaries. Logging timestamps and raw speech transcription with officer review is compliant and recommended for administrative efficiency.",
+      sources: [
+        { label: "Seattle GenAI Policy", url: "https://itservicehub.seattle.gov/tech/data-privacy/the-citys-responsible-use-of-artificial-intelligence" },
+        { label: "SPD Manual", url: "https://public.powerdms.com/Sea4550" }
+      ]
+    },
+    {
+      id: "SPD-2026-219",
+      category: "Civil Rights & Municipal Law",
+      text: "An officer initiates a stop for an expired vehicle registration tab and triggers an unprompted automated search querying federal databases for the driver's immigration status without judicial criminal reasonable suspicion.",
+      verdict: "violation",
+      title: "Violation of Municipal Immigration Neutrality",
+      jurisdiction: "City of Seattle SMC",
+      citations: "Seattle Municipal Code SMC 4.18 & SPD Manual §6.020 (Civil Immigration Inquiries)",
+      explanation: "Seattle law explicitly forbids city employees and officers from inquiring into, recording, or using public funds to investigate federal immigration status absent an independent judicial warrant or felony criminal basis.",
+      sources: [
+        { label: "SMC 4.18", url: "https://library.municode.com/wa/seattle/codes/municipal_code/333954?nodeId=TIT4PE_CH4.18ENFEIMLA_4.18.020MARECO" },
+        { label: "SPD Manual", url: "https://public.powerdms.com/Sea4550" }
+      ]
+    },
+    {
+      id: "SPD-2026-340",
+      category: "Tactical Force & Escalation",
+      text: "A burglary suspect barricades inside an unoccupied commercial garage with no hostages. Responding officers consider deploying a remote tracked tactical robot armed with a kinetic impact projectile without Lieutenant approval.",
+      verdict: "escalate",
+      title: "Mandatory Supervisory De-escalation Threshold",
+      jurisdiction: "Washington State & SPD",
+      citations: "Washington State RCW 10.116 (Peace Officer Tactics) & SPD Manual §8.050 / §8.100 (Use of Force)",
+      explanation: "Deploying specialized kinetic tactical robotics in barricade scenarios requires mandatory supervisor evaluation, pre-authorization, and exhausting all proportional de-escalation measures under state statute.",
+      sources: [
+        { label: "RCW 10.116", url: "https://app.leg.wa.gov/rcw/default.aspx?cite=10.116" },
+        { label: "SPD Manual", url: "https://public.powerdms.com/Sea4550" }
+      ]
+    },
+    {
+      id: "SPD-2026-488",
+      category: "Statutory Retrieval & Legal RAG",
+      text: "A detective uses an SPD-sanctioned retrieval-augmented generation (RAG) tool indexed strictly on the public Seattle Municipal Code and Washington Revised Code (RCW) to identify matching statutory penal codes for property damage.",
+      verdict: "authorized",
+      title: "Authorized Public Legal Research",
+      jurisdiction: "Washington State PRA & City IT",
+      citations: "Washington State Public Records Act & City of Seattle Tech Governance",
+      explanation: "Authorized and encouraged. The retrieval corpus consists entirely of public statutes and local ordinances with zero citizen PII or confidential investigatory logs involved.",
+      sources: [
+        { label: "Washington PRA (RCW 42.56)", url: "https://app.leg.wa.gov/rcw/default.aspx?cite=42.56" }
+      ]
+    },
+    {
+      id: "SPD-2026-512",
+      category: "Facial Recognition & Biometric Surveillance",
+      text: "Officers monitoring a large public rally connect a third-party facial-recognition service to the crowd camera feed to run continuous, real-time face matching against a wanted-persons list, without first obtaining a warrant.",
+      verdict: "violation",
+      title: "Unwarranted Real-Time Biometric Surveillance",
+      jurisdiction: "Washington State",
+      citations: "RCW 43.386.020 & 43.386.080 (Washington Facial Recognition Services Law)",
+      explanation: "State law bars government agencies from running ongoing or real-time facial-recognition identification without a warrant, or outside the narrow missing-person and deceased-identification court-order exceptions. Continuous crowd scanning at a rally falls outside both.",
+      sources: [
+        { label: "RCW 43.386", url: "https://app.leg.wa.gov/RCW/default.aspx?cite=43.386" }
+      ]
+    },
+    {
+      id: "SPD-2026-556",
+      category: "Public Communications & GenAI",
+      text: "A public-affairs officer drafts a neighborhood safety newsletter with a generative AI writing assistant, routes it through a supervisor for review and edits before publishing, and adds a footer disclosing that AI helped draft the content.",
+      verdict: "authorized",
+      title: "Compliant, Human-Reviewed GenAI Drafting",
+      jurisdiction: "City of Seattle",
+      citations: "City of Seattle Generative Artificial Intelligence Policy (Oct. 2023)",
+      explanation: "The policy requires human review before publication and attribution of AI-generated content — both satisfied here. No sensitive, confidential, or personally identifiable data about the public was involved, keeping this within the policy's approved-use lane.",
+      sources: [
+        { label: "Seattle GenAI Policy", url: "https://itservicehub.seattle.gov/tech/data-privacy/the-citys-responsible-use-of-artificial-intelligence" }
+      ]
+    },
+    {
+      id: "SPD-2026-601",
+      category: "Surveillance Technology Acquisition",
+      text: "A precinct captain wants to pilot a new AI-powered real-time video analytics platform across the precinct's camera network next month and asks IT to quietly install it before the required public Surveillance Impact Report is filed.",
+      verdict: "escalate",
+      title: "Mandatory Surveillance Impact Report & Council Review",
+      jurisdiction: "City of Seattle",
+      citations: "Seattle Municipal Code Ch. 14.18 (Surveillance Ordinance) & Seattle IT Policy PR-02",
+      explanation: "New surveillance technology can't be acquired or deployed until a Surveillance Impact Report is drafted, reviewed for community and civil-liberties impact, and approved by City Council ordinance. This requires escalation to Seattle IT's privacy program, not a unilateral precinct rollout.",
+      sources: [
+        { label: "SMC 14.18 / Surveillance Program", url: "https://www.seattle.gov/tech/data-privacy/surveillance-technology" }
+      ]
+    },
+    {
+      id: "SPD-2026-647",
+      category: "Body-Worn Video & Public Records",
+      text: "Facing a statutory deadline on a high-profile public records request, an analyst wants to use a new, untested AI auto-redaction tool to blur faces and license plates in body-worn video, skipping the department's required supervisor quality-review step to save time.",
+      verdict: "escalate",
+      title: "Redaction Requires Supervisor Sign-Off Before Release",
+      jurisdiction: "City of Seattle / SPD",
+      citations: "SPD Manual §16.090 (In-Car and Body-Worn Video) & Washington Public Records Act RCW 42.56.240",
+      explanation: "Body-worn video is department property released only through a mandatory review pipeline. An unvalidated AI redaction pass still needs supervisor quality review before release — a tight deadline requires an explicit supervisor exception, not analyst discretion alone.",
+      sources: [
+        { label: "SPD Manual §16.090", url: "https://public.powerdms.com/Sea4550/documents/2042828" },
+        { label: "RCW 42.56.240", url: "https://app.leg.wa.gov/rcw/default.aspx?cite=42.56.240" }
+      ]
+    },
+    {
+      id: "SPD-2026-689",
+      category: "Consent & Interpretation AI",
+      text: "An officer opens a real-time AI translation app on a personal phone to interpret and silently transcribe a private conversation with a non-English-speaking witness inside her home, without telling her the conversation is being recorded.",
+      verdict: "violation",
+      title: "Unlawful Recording Without All-Party Consent",
+      jurisdiction: "Washington State",
+      citations: "RCW 9.73.030 (Washington Privacy Act — all-party consent)",
+      explanation: "Washington is an all-party consent state: recording a private conversation requires notice to, and consent from, every participant. Live interpretation is fine; silently transcribing it without disclosure is a criminal privacy violation and can make the transcript inadmissible.",
+      sources: [
+        { label: "RCW 9.73.030", url: "https://app.leg.wa.gov/rcw/default.aspx?cite=9.73.030" }
+      ]
+    },
+    {
+      id: "SPD-2026-733",
+      category: "Juvenile Records & AI Summarization",
+      text: "A detective pastes a 15-year-old suspect's full juvenile case file, including identifying details, into a general-purpose AI tool to generate a plain-language summary for an upcoming multi-agency school-safety briefing.",
+      verdict: "violation",
+      title: "Improper Disclosure of Confidential Juvenile Records",
+      jurisdiction: "Washington State",
+      citations: "RCW 13.50.010 & 13.50.100 (Juvenile Records Confidentiality)",
+      explanation: "Records outside the official juvenile court file are confidential and releasable only to specific participants in the juvenile justice system. Feeding identifying details into a general-purpose AI tool, then routing the summary to a broad multi-agency audience, falls outside those narrow release provisions.",
+      sources: [
+        { label: "RCW 13.50.010", url: "https://app.leg.wa.gov/rcw/default.aspx?cite=13.50.010" }
+      ]
+    }
+  ];
+
+  let currentIndex = 0;
+  let score = 0;
+  let isAnsweringBlocked = false;
+
+  function renderProgressDots(){
+    const container = document.getElementById('progress-dots');
+    container.innerHTML = '';
+    scenarios.forEach((_, idx) => {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (idx === currentIndex ? ' current' : idx < currentIndex ? ' done' : '');
+      container.appendChild(dot);
+    });
+  }
+
+  function renderCard(){
+    const current = scenarios[currentIndex];
+    const card = document.getElementById('active-card');
+    card.style.animation = 'none';
+    void card.offsetWidth;
+    card.style.animation = '';
+
+    document.getElementById('scenario-counter').innerText = `SCENARIO ${currentIndex + 1} OF ${scenarios.length}`;
+    document.getElementById('scenario-category').innerText = current.category;
+    document.getElementById('card-badge').innerText = current.category.toUpperCase();
+    document.getElementById('card-id').innerText = '#' + current.id;
+    document.getElementById('scenario-text').innerText = current.text;
+    document.getElementById('score-display').innerText = score;
+
+    document.querySelectorAll('.triage-btn').forEach(b => b.disabled = false);
+    renderProgressDots();
+    isAnsweringBlocked = false;
+  }
+
+  function handleSelection(choice){
+    if (isAnsweringBlocked) return;
+    isAnsweringBlocked = true;
+    document.querySelectorAll('.triage-btn').forEach(b => b.disabled = true);
+
+    const current = scenarios[currentIndex];
+    const isCorrect = choice === current.verdict;
+    if (isCorrect) score++;
+    document.getElementById('score-display').innerText = score;
+
+    showFeedback(isCorrect, current);
+  }
+
+  function showFeedback(isCorrect, scenario){
+    const panel = document.getElementById('feedback-panel');
+    const box = document.getElementById('feedback-box');
+    const icon = document.getElementById('feedback-icon');
+    const title = document.getElementById('feedback-title');
+    const summary = document.getElementById('feedback-verdict-summary');
+    const badge = document.getElementById('feedback-badge');
+    const citations = document.getElementById('feedback-citations');
+    const takeaway = document.getElementById('feedback-takeaway');
+    const jurisdiction = document.getElementById('jurisdiction-tag');
+    const sourcesEl = document.getElementById('feedback-sources');
+
+    const state = isCorrect ? 'ok' : 'bad';
+    box.className = state;
+    icon.className = state;
+    icon.innerHTML = isCorrect
+      ? '<i data-lucide="check" style="width:1.1rem;height:1.1rem;stroke-width:2.5;"></i>'
+      : '<i data-lucide="alert-circle" style="width:1.1rem;height:1.1rem;stroke-width:2.5;"></i>';
+    title.className = state;
+    title.innerText = isCorrect ? 'Correct Assessment' : 'Incorrect Determination';
+    badge.className = state;
+    badge.innerText = isCorrect ? 'PASSED' : 'FLAGGED';
+
+    const verdictLabels = {
+      authorized: 'Authorized / Compliant',
+      violation: 'Policy Violation',
+      escalate: 'Requires Supervisor Escalation'
+    };
+
+    summary.innerText = `Standard rule: ${verdictLabels[scenario.verdict]}`;
+    jurisdiction.innerText = scenario.jurisdiction;
+    citations.innerText = scenario.citations;
+    takeaway.innerText = scenario.explanation;
+
+    sourcesEl.innerHTML = (scenario.sources || []).map(s =>
+      `<a class="source-pill" href="${s.url}" target="_blank" rel="noopener">${s.label} <i data-lucide="arrow-up-right" style="width:0.6rem;height:0.6rem;"></i></a>`
+    ).join('');
+
+    panel.style.transform = 'translateY(0)';
+    lucide.createIcons();
+  }
+
+  function nextCard(){
+    const panel = document.getElementById('feedback-panel');
+    panel.style.transform = 'translateY(110%)';
+
+    currentIndex++;
+    if (currentIndex < scenarios.length){
+      setTimeout(renderCard, 200);
+    } else {
+      setTimeout(showSummary, 200);
+    }
+  }
+
+  function showSummary(){
+    document.getElementById('quiz-container').style.display = 'none';
+    document.getElementById('summary-view').classList.add('show');
+
+    document.getElementById('final-score').innerText = `${score}/${scenarios.length}`;
+    const percentage = Math.round((score / scenarios.length) * 100);
+    document.getElementById('final-pct').innerText = `${percentage}%`;
+
+    lucide.createIcons();
+  }
+
+  function resetModule(){
+    currentIndex = 0;
+    score = 0;
+    document.getElementById('summary-view').classList.remove('show');
+    document.getElementById('quiz-container').style.display = 'flex';
+    renderCard();
+  }
+
+  function copyCredentialBadge(){
+    const dummyUrl = `https://credentials.cityu.edu/verify/sentinel-spd-${Date.now().toString(36)}`;
+    navigator.clipboard.writeText(dummyUrl).catch(() => {
+      const tempInput = document.createElement('input');
+      tempInput.value = dummyUrl;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+    });
+
+    const toast = document.getElementById('copy-toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  const tutorDrawer = document.getElementById('tutor-drawer');
+  const openTutorBtn = document.getElementById('open-tutor-btn');
+  const closeTutorBtn = document.getElementById('close-tutor-btn');
+  const drawerBackdrop = document.getElementById('drawer-backdrop');
+
+  function openDrawer(){ tutorDrawer.classList.add('open'); }
+  function closeDrawer(){ tutorDrawer.classList.remove('open'); }
+
+  openTutorBtn.addEventListener('click', openDrawer);
+  closeTutorBtn.addEventListener('click', closeDrawer);
+  drawerBackdrop.addEventListener('click', closeDrawer);
+
+  window.addEventListener('keydown', (e) => {
+    if (tutorDrawer.classList.contains('open') && e.key === 'Escape'){
+      closeDrawer();
+      return;
+    }
+    if (!isAnsweringBlocked && currentIndex < scenarios.length){
+      if (e.key === '1') handleSelection('authorized');
+      if (e.key === '2') handleSelection('escalate');
+      if (e.key === '3') handleSelection('violation');
+    } else if (isAnsweringBlocked){
+      if (e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        nextCard();
+      }
+    }
+  });
+
+  lucide.createIcons();
+  renderCard();
+</script>
+</body>
+</html>
